@@ -6,20 +6,21 @@
 #include <string>
 #include <vector>
 #include <math.h>
-#include "Matrix.h"
 
 using namespace std;
+using Matrix = arma::Mat<double>;
 
 void split(const char*, vector<double>&);
 Matrix read_bulk(string);
 vector<string> read_batch(string);
 inline double string_to_double(string);
 
-vector<vector<double>> matrix_value;
-vector<string> batch;
 
 Matrix read_bulk(string file_name) {
+
 	vector<vector<double>> v;
+	vector<string> batch;
+
 	ifstream ifs(file_name, ios::in);
 	if (!ifs.is_open()) {
 		cout << "Fail to open bulk data!\n";
@@ -33,7 +34,12 @@ Matrix read_bulk(string file_name) {
 		}	
 	}
 	Matrix M(v.size(), v[0].size());
-	M.value = v;
+
+	for (int i = 0; i < v.size(); ++i) {
+		for (int j = 0; j < v[0].size(); ++j) {
+			M(i, j) = v[i][j];
+		}
+	}
 	return M;
 }
 
