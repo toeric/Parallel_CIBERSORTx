@@ -12,13 +12,35 @@ using Matrix = arma::Mat<double>;
 
 Matrix ComBat(string data_file, string batch_file){
 
-	Matrix dat;
+	Matrix org_dat;
 	vector<string> batch;
 
-	dat = read_bulk(data_file);
+	org_dat = read_bulk(data_file);
 	batch = read_batch(batch_file);
+
+	int var_not_zero_count = 0;
+	vector<int> not_zero_row;
+	Matrix Var_matrix = var(org_dat, 0, 1);
+
+	for (int i = 0; i < Var_matrix.n_rows; ++i) {
+		if (Var_matrix(i, 0) != 0)
+			var_not_zero_count += 1;
+	}
+
+	Matrix dat(var_not_zero_count, org_dat.n_cols);
+	int dat_idx = 0;
+	for (int i = 0; i < Var_matrix.n_rows; ++i) {
+		if (Var_matrix(i, 0) != 0) {
+			dat.row(dat_idx) =  org_dat.row(i);
+			dat_idx ++;
+			not_zero_row.push_back(i);
+		}
+	}
+
+	cout << "Find " << var_not_zero_count << " rows with not 0 varaince" << endl;
 	
 	Matrix design = model_matrix(batch);
+	
 	int n_batch = nlevels(batch);
 	map<string, vector<int>> batches = build_batches(batch);
 	arma::Row<int> n_batches = build_n_batches(batches);
@@ -92,8 +114,17 @@ Matrix ComBat(string data_file, string batch_file){
 	}
 
 	bayesdata = bayesdata % s_data_denominator + stand_mean;
-
-	return bayesdata;
+	int bayes_idx = 0;
+	Matrix final_bayesdata(org_dat.n_rows, org_dat.n_cols);
+	for (int i = 0; i < org_dat.n_rows; ++i) {
+		if (find(not_zero_row.begin(), not_zero_row.end(), i) != not_zero_row.end()) {
+			final_bayesdata.row(i) =  bayesdata.row(bayes_idx);
+			bayes_idx ++;
+		} else {
+			final_bayesdata.row(i) = org_dat.row(i);
+		}
+	}
+	return final_bayesdata;
 }
 
 #endif 

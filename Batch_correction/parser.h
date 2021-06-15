@@ -60,7 +60,7 @@ vector<string> read_batch(string file_name) {
 }
 
 void split(const char *str, vector<double>& result) {
-	char c = ' ';
+	char c = '\t';
 	bool first = true;
 	do {
 		const char *begin = str;
